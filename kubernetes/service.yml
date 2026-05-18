@@ -1,28 +1,12 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: openreview-public-service
-spec:
-  type: NodePort
-  ports:
-  - name: frontend-port
-    port: 80
-    targetPort: 80
-    nodePort: 32000
-  - name: backend-port
-    port: 5000
-    targetPort: 5000
-    nodePort: 32500
-  selector:
-    app: openreview-tier
+# (Keep your existing openreview-public-service and mongo-cluster-service here)
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-cluster-service
+  name: openreview-sql-service
 spec:
   ports:
-  - port: 27017
-    targetPort: 27017
+  - port: 3306
+    targetPort: 3306
   selector:
-    app: openreview-db
+    app: openreview-sql

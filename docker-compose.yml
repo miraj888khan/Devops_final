@@ -1,6 +1,35 @@
+version: '3.8'
+
 services:
-  database:
-    build: ./database
+  openreview-frontend:
+    build: ./frontend
+    container_name: openreview-frontend
+    ports:
+      - "80:80"
+    networks:
+      - openreview-network
+    depends_on:
+      - openreview-backend
+
+  openreview-backend:
+    build: ./backend
+    container_name: openreview-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://openreview-db:27017/openreview
+      - MYSQL_HOST=openreview-sql-db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=rootpassword
+      - MYSQL_DATABASE=openreview_sql
+    networks:
+      - openreview-network
+    depends_on:
+      - openreview-db
+      - openreview-sql-db
+
+  openreview-db:
+    image: mongo:6.0
     container_name: openreview-db
     ports:
       - "27017:27017"
@@ -9,33 +38,24 @@ services:
     networks:
       - openreview-network
 
-  backend:
-    build: ./backend
-    container_name: openreview-backend
+  # 🟢 ADDING THE SQL DATABASE TIER HERE
+  openreview-sql-db:
+    image: mysql:8.0
+    container_name: openreview-sql-db
     ports:
-      - "5000:5000"
+      - "3306:3306"
     environment:
-      - MONGO_URI=mongodb://database:27017/openreview
-      - PORT=5000
-    depends_on:
-      - database
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: openreview_sql
+    volumes:
+      - mysql-data:/var/lib/mysql
     networks:
       - openreview-network
 
-  frontend:
-    build: ./frontend
-    container_name: openreview-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - openreview-network
+volumes:
+  mongo-data:
+  mysql-data: # Persists your SQL data on your local hard drive
 
 networks:
   openreview-network:
     driver: bridge
-
-volumes:
-  mongo-data:
-    driver: local
