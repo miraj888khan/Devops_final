@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openreview-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: openreview
+  template:
+    metadata:
+      labels:
+        app: openreview
+    spec:
+      containers:
+      - name: frontend
+        image: miraj888khan/openreview-frontend:latest
+        ports:
+        - containerPort: 80
+      - name: backend
+        image: miraj888khan/openreview-backend:latest
+        ports:
+        - containerPort: 5000
