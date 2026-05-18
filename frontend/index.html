@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenReview Academic Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 40px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+        .status-box { padding: 15px; margin: 20px 0; border-radius: 4px; font-weight: bold; }
+        .online { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #fdfdfd; padding: 12px; margin-bottom: 8px; border: 1px solid #eee; border-left: 5px solid #2ecc71; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<h1>Miraj Balcoh</h1>
+<div class="container">
+    <h1>COMSATS OpenReview Platform</h1>
+    <p><strong>DevOps Lab Final Deployment Verification Portal</strong></p>
+    
+    <div id="api-status" class="status-box">Checking connection to backend server...</div>
+
+    <h3>Submit a Research Paper</h3>
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="paperTitle" placeholder="Paper Title" style="padding: 8px; width: 250px;">
+        <input type="text" id="paperAuthor" placeholder="Author Name" style="padding: 8px; width: 200px;">
+        <button class="btn" onclick="submitPaper()">Publish Entry</button>
+    </div>
+
+    <h3>Active Submissions (Pulled live from MongoDB)</h3>
+    <ul id="submission-list"></ul>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000/api';
+
+    async function checkHealth() {
+        try {
+            const res = await fetch(`${API_URL}/health`);
+            const statusBox = document.getElementById('api-status');
+            statusBox.className = "status-box online";
+            statusBox.innerText = "SUCCESS: Frontend connected to Backend. Backend connected to Database.";
+            loadSubmissions();
+        } catch (err) {
+            document.getElementById('api-status').innerText = "Connection Error: API Server offline or unreachable.";
+        }
+    }
+
+    async function loadSubmissions() {
+        try {
+            const res = await fetch(`${API_URL}/submissions`);
+            const data = await res.json();
+            const list = document.getElementById('submission-list');
+            list.innerHTML = '';
+            if(data.length === 0) {
+                list.innerHTML = '<li>No submissions found in MongoDB storage yet.</li>';
+            }
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${item.title}</strong> by ${item.author} — <span style="color:#e67e22">${item.reviewStatus}</span>`;
+                list.appendChild(li);
+            });
+        } catch (err) {
+            console.error("Failed to load submissions", err);
+        }
+    }
+
+    async function submitPaper() {
+        const title = document.getElementById('paperTitle').value;
+        const author = document.getElementById('paperAuthor').value;
+        if(!title || !author) return alert("Please fill details");
+
+        try {
+            await fetch(`${API_URL}/submissions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, author })
+            });
+            document.getElementById('paperTitle').value = '';
+            document.getElementById('paperAuthor').value = '';
+            loadSubmissions();
+        } catch(err) {
+            alert("Submission failed");
+        }
+    }
+
+    checkHealth();
+</script>
+</body>
+</html>

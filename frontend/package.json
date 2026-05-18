@@ -1,0 +1,6 @@
+{
+  "name": "openreview-frontend",
+  "version": "1.0.0",
+  "description": "Static server configuration for layout demo",
+  "dependencies": {}
+}
