@@ -1,23 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openreview-deployment
+  name: openreview-app-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: openreview
+      app: openreview-tier
   template:
     metadata:
       labels:
-        app: openreview
+        app: openreview-tier
     spec:
       containers:
-      - name: frontend
-        image: miraj888khan/openreview-frontend:latest
+      - name: frontend-container
+        image: devopslabfinal-frontend:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 80
-      - name: backend
-        image: miraj888khan/openreview-backend:latest
+      - name: backend-container
+        image: devopslabfinal-backend:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 5000
+        env:
+        - name: MONGO_URI
+          value: "mongodb://mongo-cluster-service:27017/openreview"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openreview-db-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openreview-db
+  template:
+    metadata:
+      labels:
+        app: openreview-db
+    spec:
+      containers:
+      - name: db-container
+        image: mongo:6.0
+        ports:
+        - containerPort: 27017
